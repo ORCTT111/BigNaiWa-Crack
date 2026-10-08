@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#fff3e0">
+<meta name="color-scheme" content="light">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="大奶娃破解版">
+<meta name="application-name" content="大奶娃破解版">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="合成大奶娃 · 破解版：无限复活币，复活即清掉捧腹奶蛙以下的全部实体。纯前端、离线可玩。">
+<title>合成大奶娃 · 破解版</title>
+
+<!-- Windows / Android / 桌面浏览器 -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="icon" href="assets/icons/icon-512.png" sizes="512x512" type="image/png">
+<link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+<!-- iOS Safari「添加到主屏幕」用的图标 -->
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+<!-- 破解版增量样式：必须排在 style.css 之后（原版末尾是一堆响应式 @media） -->
+<link rel="stylesheet" href="style-crack.css">
+</head>
+<body>
+
+<main class="app">
+
+  <!-- ===== 游戏区 ===== -->
+  <section class="stage" id="stage">
+    <canvas id="game" aria-label="合成大奶娃游戏区域"></canvas>
+
+    <!-- 复活币：浮在棋盘左下角。
+         放左下角而不是原版的左上角，是因为左上角让给了水印；
+         右上角是游戏自己画的「下一个」预览区。
+         pointer-events 关掉，永远不会挡住投放。 -->
+    <div class="revive-chip is-infinite" id="reviveBadge">
+      <span class="revive-chip-ico" aria-hidden="true">🪙</span><span id="reviveCount">×∞</span>
+    </div>
+
+    <!-- 水印：钉在棋盘左上角（避开右上角的「下一个」预览）。
+         pointer-events 关掉，绝不抢投放操作。 -->
+    <div class="wm wm-stage" aria-hidden="true">
+      <span class="wm-tag">HACKED</span>
+      <span class="wm-name">by 猫祐今天吃盒蛋</span>
+    </div>
+
+    <div class="overlay" id="overlay">
+      <div class="dialog">
+
+        <!-- ===== 越线第一屏：有复活币时才出现 ===== -->
+        <div class="revive-ask" id="revivePrompt" hidden>
+          <div class="dialog-emoji">😵</div>
+          <h2>还能再救一下</h2>
+          <p class="dialog-score">本局得分 <strong id="reviveScore">0</strong></p>
+          <p class="revive-hint">清掉警戒线以上的水果，接着玩</p>
+          <div class="crack-hint">
+            <span class="crack-badge">破解</span>
+            <span>复活会额外把场上<strong>等级低于捧腹奶蛙</strong>的实体全部清除（葡萄→菠萝），只留捧腹奶蛙 / 半奶蛙 / 神奶蛙</span>
+          </div>
+          <div class="dialog-actions">
+            <button class="btn" id="giveUpBtn" type="button">不了，结束吧</button>
+            <button class="btn btn-revive" id="reviveBtn" type="button">🪙 用一枚复活币</button>
+          </div>
+          <p class="dialog-hint" id="reviveLeft">复活币无限 · 复活即清掉捧腹奶蛙以下的全部</p>
+        </div>
+
+        <!-- ===== 第二屏：正式结算 ===== -->
+        <div id="overPanel">
+          <div class="dialog-emoji">🍉</div>
+          <h2 id="overTitle">游戏结束</h2>
+          <p class="dialog-score">本局得分 <strong id="finalScore">0</strong></p>
+          <p class="dialog-best">最高分 <span id="finalBest">0</span></p>
+
+          <div class="submit-box" id="submitBox">
+            <p class="submit-msg" id="submitMsg">正在结算…</p>
+            <p class="my-name">昵称：<strong id="myNameLabel">默认用户</strong>
+              <button class="link-btn" id="editNameBtn" type="button">改昵称</button>
+            </p>
+          </div>
+
+          <div class="dialog-actions">
+            <button class="btn" id="boardBtn2" type="button">🏆 本地榜</button>
+            <button class="btn btn-primary" id="restartBtn" type="button">再来一局</button>
+          </div>
+          <p class="dialog-hint">按 R 键也可重新开始</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 侧边面板 ===== -->
+  <aside class="panel">
+
+    <header class="panel-head">
+      <h1>合成大奶娃</h1>
+      <p class="subtitle">相同的撞在一起，越合越大 · <strong>破解版</strong></p>
+      <p class="wm wm-panel">hacked by 猫祐今天吃盒蛋</p>
+    </header>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-label">分数</span>
+        <strong class="stat-value" id="score">0</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">最高分</span>
+        <strong class="stat-value stat-best" id="best">0</strong>
+      </div>
+    </div>
+
+    <div class="next-box">
+      <span class="box-label">下一个</span>
+      <canvas id="next" width="160" height="160" aria-label="下一个"></canvas>
+    </div>
+
+    <div class="chain-box">
+      <span class="box-label">合成表</span>
+      <canvas id="chain" width="680" height="112" aria-label="合成顺序"></canvas>
+      <p class="chain-note">✨ 两个神奶蛙撞在一起会一起炸掉，换 <strong>500 分</strong></p>
+    </div>
+
+    <!-- 破解特性速查：桌面上常驻，窄屏（顶部信息条）下自动收起 -->
+    <div class="crack-box">
+      <span class="box-label">破解特性</span>
+      <ul class="crack-list">
+        <li><span class="crack-badge">1</span>复活币<strong>无限</strong>，永不消耗</li>
+        <li><span class="crack-badge">2</span>复活时清掉所有<strong>低于捧腹奶蛙</strong>的实体</li>
+        <li><span class="crack-badge">3</span>纯本地榜，<strong>无联网</strong>依赖</li>
+      </ul>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-wide" id="boardBtn" type="button">
+        <span class="ico">🏆</span><span class="lbl">本地榜</span>
+      </button>
+      <button class="btn" id="soundBtn" type="button" aria-pressed="true">
+        <span class="ico">🔊</span><span class="lbl">音效开</span>
+      </button>
+      <button class="btn btn-primary" id="resetBtn" type="button" title="重新开始">
+        <span class="ico">↻</span><span class="lbl">重开</span>
+      </button>
+    </div>
+
+    <p class="tips">
+      鼠标：移动瞄准、点击投放；触屏：拖动瞄准、松手投放。<br>
+      ← → 微调位置，空格投放，R 重开。<br>
+      每 <strong>2000 分</strong>在原版攒一枚复活币；<strong>本版无限</strong>。
+    </p>
+
+  </aside>
+
+</main>
+
+<!-- ===== 本地排行榜弹窗（纯 localStorage，无网络请求） ===== -->
+<div class="modal" id="boardModal" aria-hidden="true" role="dialog" aria-label="本地排行榜">
+  <div class="modal-card">
+    <header class="modal-head">
+      <h2>🏆 本机最高分榜</h2>
+      <button class="icon-btn" id="boardClose" type="button" aria-label="关闭">✕</button>
+    </header>
+    <div class="nick-row">
+      <label class="nick-label" for="nickInput">我的昵称</label>
+      <input class="nick-input" id="nickInput" type="text" maxlength="12"
+             placeholder="默认用户" autocomplete="nickname" enterkeyhint="done">
+    </div>
+    <div class="board-list" id="boardList"></div>
+    <footer class="modal-foot">
+      <span class="board-note">只保存在这台设备上，不进云、不联网</span>
+      <span class="foot-actions">
+        <button class="btn" id="boardClear" type="button">清空</button>
+        <button class="btn" id="boardClose2" type="button">关闭</button>
+      </span>
+    </footer>
+  </div>
+</div>
+
+<!-- 碰撞形状数据（按贴图轮廓自动生成，由 tools/build_parts.py 产出） -->
+<script src="assets/fruits/parts.js"></script>
+<!-- 极模糊占位图（内联 data URL，由 tools/make_blur.py 产出）：贴图没到位时先画它 -->
+<script src="assets/fruits/blur.js"></script>
+<script src="game.js"></script>
+<!-- 本地排行榜（替代原版的联网 TinyWebDB 榜） -->
+<script src="local-board.js"></script>
+<!-- PWA：离线缓存 + 安装。file:// 下自动跳过 -->
+<script src="sw-register.js"></script>
+</body>
+</html>

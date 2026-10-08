@@ -1,0 +1,314 @@
+/* ============================================================
+ *  合成大奶娃 · 破解版 —— 增量样式
+ *
+ *  刻意做成独立文件、并且在 index.html 里排在 style.css 之后：
+ *    1) 原版 style.css 一个字都不改，万一有回归，范围一眼可界定；
+ *    2) 原版 style.css 末尾是一堆响应式 @media，破解版新增的
+ *       .crack-box 之类必须在它们**之后**，否则隐藏规则会被原版的
+ *       `.chain-box { display:none }` 同权重规则压过去。
+ *
+ *  内容：破解版 UI + 跨平台（Windows / Android / HarmonyOS / iOS）增强。
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ *  1. 无限复活币胶囊
+ * ---------------------------------------------------------- */
+
+.revive-chip.is-infinite {
+  color: #5a2d00;
+  background: linear-gradient(120deg, #ffe9a8 0%, #ffc247 38%, #ff9f1c 62%, #ffd97a 100%);
+  background-size: 260% 100%;
+  box-shadow: 0 3px 12px rgba(200, 130, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .85);
+  animation: chipSheen 4.2s ease-in-out infinite;
+}
+
+@keyframes chipSheen {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revive-chip.is-infinite { animation: none; }
+}
+
+/* ------------------------------------------------------------
+ *  2. 破解标记与说明块
+ * ---------------------------------------------------------- */
+
+.crack-badge {
+  display: inline-block;
+  flex: 0 0 auto;
+  min-width: 19px;
+  padding: 1px 6px;
+  margin-right: 6px;
+  font-size: 11px;
+  font-weight: 900;
+  font-style: normal;
+  line-height: 1.55;
+  text-align: center;
+  color: #fff;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff7a59, #e8342f 70%);
+  box-shadow: 0 2px 6px rgba(232, 52, 47, .35);
+}
+
+/* 越线弹窗里的破解说明 */
+.crack-hint {
+  display: flex;
+  align-items: flex-start;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  text-align: left;
+  color: #7a2f00;
+  border-radius: 14px;
+  background: linear-gradient(120deg, rgba(255, 226, 178, .9), rgba(255, 205, 150, .75));
+  box-shadow: inset 0 0 0 1px rgba(214, 140, 60, .3);
+}
+
+.crack-hint strong { color: #c0301b; }
+
+/* 侧边面板里的破解特性速查 */
+.crack-box {
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 240, 210, .92), rgba(255, 224, 180, .78));
+  box-shadow: inset 0 0 0 1px rgba(226, 168, 96, .35), 0 4px 14px rgba(140, 96, 56, .10);
+}
+
+.crack-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #6b4318;
+}
+
+.crack-list li {
+  display: flex;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.crack-list li + li { border-top: 1px dashed rgba(200, 140, 70, .3); }
+
+.crack-list strong { color: #c0301b; }
+
+.panel-head .subtitle strong {
+  color: #e8342f;
+  letter-spacing: .02em;
+}
+
+/* ------------------------------------------------------------
+ *  3. 水印「hacked by 猫祐今天吃盒蛋」
+ *
+ *  两处：
+ *    · .wm-stage —— 钉在棋盘右上角（DOM 层，压在 canvas 之上）
+ *    · .wm-panel —— 侧栏标题下方一行小字
+ *  两处都 pointer-events:none + user-select:none，
+ *  绝对不抢投放操作、也不会被长按选中。
+ * ---------------------------------------------------------- */
+
+.wm {
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 棋盘左下角那枚「印章」（左上角给水印，右上角是游戏自己画的「下一个」预览） */
+.wm-stage {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 4;                 /* 压在 canvas 之上 */
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 4px 9px 5px;
+  border-radius: 10px;
+  line-height: 1.15;
+  text-align: left;
+  transform: rotate(-3.2deg);
+  background: linear-gradient(135deg, rgba(255, 122, 89, .93), rgba(232, 52, 47, .93) 70%);
+  box-shadow: 0 3px 12px rgba(200, 60, 40, .32), inset 0 1px 0 rgba(255, 255, 255, .38);
+  opacity: .92;
+}
+
+.wm-stage .wm-tag {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  color: rgba(255, 236, 210, .92);
+}
+
+.wm-stage .wm-name {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .01em;
+  white-space: nowrap;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(120, 20, 10, .45);
+}
+
+/* 侧栏标题下那一行 */
+.wm-panel {
+  margin: 7px 0 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  text-align: right;
+  background: linear-gradient(100deg, #ff8a3d, #e8342f 65%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 复活币胶囊改到左下角（原版在左上角，那里让给水印了） */
+.revive-chip {
+  top: auto;
+  bottom: 10px;
+  left: 10px;
+}
+
+/* 小屏（面板被压成顶部信息条）下，侧栏水印随 .panel-head 一起收起；
+   棋盘上那枚印章保留，所以窄屏依旧看得到水印 */
+@media (max-width: 860px) {
+  .wm-stage { top: 6px; left: 6px; padding: 3px 7px 4px; transform: rotate(-3.2deg) scale(.92); transform-origin: top left; }
+  .wm-stage .wm-name { font-size: 11px; }
+}
+
+/* 极窄屏：只留名字，去掉 HACKED 小字，避免和右上角「下一个」预览打架 */
+@media (max-width: 380px) {
+  .wm-stage .wm-tag { display: none; }
+  .wm-stage { padding: 3px 6px; }
+}
+
+/* ------------------------------------------------------------
+ *  4. 本地榜弹窗底部按钮
+ * ---------------------------------------------------------- */
+
+.foot-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.foot-actions .btn { padding: 8px 14px; }
+
+#boardClear { color: #b2352f; }
+
+/* ------------------------------------------------------------
+ *  4. 跨平台增强
+ *
+ *  原版已经处理了 dvh / 安全区 / touch-action / DPR 封顶。
+ *  这里补的是「按住不放」在各家内核上的差异：
+ *    · iOS Safari 长按会弹「拷贝 / 查询」气泡、双击会缩放
+ *    · HarmonyOS / Android 的华为浏览器、QQ 浏览器长按会触发
+ *      「图片保存 / 文字选择」
+ *    · 鸿蒙的部分内核在按钮上会留下高亮色块
+ *  棋盘本体靠 canvas 的 touch-action:none 就够，但对 UI 层统一关掉
+ *  选择与长按菜单，视觉上才干净。
+ * ---------------------------------------------------------- */
+
+.app,
+.panel,
+.actions,
+.stats,
+.modal,
+.modal-card,
+.overlay,
+.dialog,
+.chain-box,
+.crack-box,
+.next-box {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;    /* iOS：禁掉长按弹出菜单 */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 输入框当然要能选能打字，别被上面那条连坐 */
+.nick-input {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* 按钮：统一触摸行为，避免双击缩放与 300ms 延迟 */
+.btn,
+.icon-btn,
+.link-btn {
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* iOS 会给 button 加内阴影和奇怪的默认字体，压掉 */
+.btn { -webkit-appearance: none; }
+
+/* 输入框在 iOS 上圆角会被系统覆盖，显式声明 */
+.nick-input {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 10px;
+}
+
+/* 字体：把 HarmonyOS Sans 与苹方一起放进栈，鸿蒙设备上也能吃上系统字体 */
+body {
+  font-family: "HarmonyOS Sans SC", "HarmonyOS Sans",
+               "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+               system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans CJK SC", sans-serif;
+}
+
+/* 桌面端：给键盘用户一个看得见的焦点环（默认被 outline:none 吃掉了） */
+.btn:focus-visible,
+.icon-btn:focus-visible,
+.link-btn:focus-visible,
+.nick-input:focus-visible {
+  outline: 3px solid rgba(255, 107, 107, .55);
+  outline-offset: 2px;
+}
+
+/* 高对比度 / 强制配色模式下（Windows 高对比主题等）保证按钮有边框 */
+@media (forced-colors: active) {
+  .btn, .icon-btn, .nick-input { border: 1px solid ButtonText; }
+  .crack-badge { border: 1px solid ButtonText; }
+}
+
+/* 原版桌面端把 .stage 定成 min(86vh, 700px)，但**侧栏面板没有高度上限**：
+   它按内容自然撑高（1366×768 上是 784.7px），把 .app 顶到 801px，
+   于是 body 虽然 overflow:hidden，页面实际还是溢出了 33px（内容被悄悄裁掉）。
+   桌面端（≥861px）给侧栏一个可收缩的高度上限并允许内部滚动兜底。
+   这里写成 .app > .panel 提高权重，确保覆盖 .panel 自身规则；
+   而 ≤860px 的「顶部信息条」布局不受影响（那条 media 之后另有规则接管）。 */
+@media (min-width: 861px) {
+  .app { min-height: 0; align-items: flex-start; }
+  .app > .panel {
+    height: min(calc(100vh - 32px), 700px);
+    height: min(calc(100dvh - 32px), 700px);
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    overscroll-behavior: contain;   /* 面板内滚到底不要带着页面一起动 */
+    -webkit-overflow-scrolling: touch;
+  }
+  /* 棋盘跟着侧栏一起收缩（取两者较小的那个高度），布局自然对齐 */
+  .stage {
+    height: min(calc(100vh - 32px), 700px);
+    height: min(calc(100dvh - 32px), 700px);
+  }
+}
+
+/* 桌面端矮窗口：破解特性卡先让位给棋盘（原版此时会收起合成表） */
+@media (max-height: 620px) and (min-width: 861px) {
+  .crack-box { display: none; }
+}
+
+/* 很矮的横屏：连破解说明块一起收，保证复活按钮一定在视野内 */
+@media (max-width: 860px) and (orientation: landscape) and (max-height: 480px) {
+  .crack-hint { display: none; }
+}
